@@ -1,0 +1,43 @@
+{
+  "id": "ei_cam_api",
+  "name": "CAM APIs",
+  "product": "ei",
+  "attributes": [
+    {
+      "id": "rate_limit",
+      "name": "Rate Limit",
+      "type": "number",
+      "meta": { "min": 10, "max": 500 }
+    }
+  ]
+}
+
+
+
+
+
+{
+	"features": [
+		{
+			"id": "ad_slates",
+			"name": "Ad Slates",
+			"status": 1,
+			"product": "ai",
+			"attributes": {},
+			"config": {}
+		},
+		{
+			"id": "ad_alerts",
+			"name": "Ad Alerts",
+			"status": 0,
+			"product": "ai",
+			"attributes": {},
+			"config": {}
+		},
+		{
+			"id": "ei_alert_severity",
+			"name": "Alerts Severity",
+			"product": "ei"
+		}
+	]
+}

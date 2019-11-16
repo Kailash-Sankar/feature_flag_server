@@ -11,7 +11,7 @@ const auth = require("../middlewares/jwt");
 var mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
-// Book Schema
+// Feature Schema
 function FeatureData(data) {
   this.id = data.id;
   this.name = data.name;
@@ -34,6 +34,17 @@ const filterByProduct = (obj, product) => {
     return row.product == product;
   });
   return newObj;
+};
+
+// build features for a customer
+// replaces product features and merges with existing ones
+const buildFeaturesList = (currentFeatures, newFeatures, product) => {
+  console.log("product", product);
+  console.log(currentFeatures, newFeatures);
+
+  const features = currentFeatures.filter(cf => cf.product !== product);
+  features.push(...newFeatures.filter(nf => nf.product == product));
+  return features;
 };
 
 // returns list of customers
@@ -210,7 +221,11 @@ exports.CustomerFeatureStore = [
             )
           });
 
-          cfMap.features = req.body.features;
+          cfMap.features = buildFeaturesList(
+            cfMap.features,
+            req.body.features,
+            req.params.product
+          );
         } else {
           // or create a new mapping record
           cfMap = new CustomerFeature({

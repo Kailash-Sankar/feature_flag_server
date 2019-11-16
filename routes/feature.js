@@ -11,8 +11,8 @@ router.get("/meta/products/", FeatureController.productList);
 router.get("/audit/", FeatureController.auditList);
 
 // APIs that can be exposed (pending formatting)
-router.get("/customer/:product/:id", FeatureController.customerFeatures);
-router.post("/customer/:id", FeatureController.CustomerFeatureStore);
+router.get("/customer/:id/:product", FeatureController.customerFeatures);
+router.post("/customer/:id/:product", FeatureController.CustomerFeatureStore);
 
 // feature management
 router.post("/ff/", FeatureController.FeatureStore);
