@@ -9,8 +9,10 @@ const FeatureSchema = new Schema(
     product: { type: String, required: true },
     attributes: [
       {
+        id: String,
         name: String,
-        value: {}
+        field: String, // 'type' key should not be used
+        meta: {}
       }
     ]
   },

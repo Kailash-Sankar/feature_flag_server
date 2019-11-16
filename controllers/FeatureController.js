@@ -1,6 +1,9 @@
 const Customer = require("../models/CustomerModel");
 const Feature = require("../models/FeatureModel");
 const CustomerFeature = require("../models/CustomerFeatureModel");
+const Product = require("../models/ProductModel");
+const Audit = require("../models/AuditModel");
+
 const { body, validationResult } = require("express-validator");
 const { sanitizeBody } = require("express-validator");
 const apiResponse = require("../helpers/apiResponse");
@@ -38,13 +41,40 @@ exports.customerList = [
   //auth,
   function(req, res) {
     try {
-      Customer.find({}, "id name products").then(customers => {
+      Customer.find({}, { _id: 0 }).then(customers => {
         console.log("customers", customers);
         if (customers.length > 0) {
           return apiResponse.successResponseWithData(
             res,
             "Operation success",
             customers
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  }
+];
+
+// returns list of products
+exports.productList = [
+  //auth,
+  function(req, res) {
+    try {
+      Product.find({}, { _id: 0 }).then(products => {
+        if (products.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            products
           );
         } else {
           return apiResponse.successResponseWithData(
@@ -70,25 +100,23 @@ exports.customerDetail = [
       return apiResponse.successResponseWithData(res, "Operation success", {});
     }
     try {
-      Customer.findOne({ id: req.params.id }, "id name products").then(
-        customer => {
-          console.log("c", customer);
-          if (customer !== null) {
-            //let data = new BookData(customer);
-            return apiResponse.successResponseWithData(
-              res,
-              "Operation success",
-              customer
-            );
-          } else {
-            return apiResponse.successResponseWithData(
-              res,
-              "Operation success",
-              {}
-            );
-          }
+      Customer.findOne({ id: req.params.id }, { _id: 0 }).then(customer => {
+        console.log("c", customer);
+        if (customer !== null) {
+          //let data = new BookData(customer);
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            customer
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            {}
+          );
         }
-      );
+      });
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
@@ -115,15 +143,17 @@ exports.FeatureStore = [
   body("product", "Product must not be empty")
     .isLength({ min: 1 })
     .trim(),
-  sanitizeBody("*").escape(),
+  //sanitizeBody("*").escape(),
   (req, res) => {
+    console.log("attr", req.body.attributes[0]);
     try {
       const errors = validationResult(req);
+      console.log("errors", errors);
       let feature = new Feature({
         id: req.body.id,
         name: req.body.name,
         product: req.body.product,
-        params: req.body.params || []
+        attributes: req.body.attributes
       });
       console.log("feature post", feature);
 
@@ -153,9 +183,9 @@ exports.FeatureStore = [
 // create customer => feature mapping
 exports.CustomerFeatureStore = [
   //auth,
-  // TODO validations
+  // TODO: validations
   async (req, res) => {
-    console.log("CF Map", req.params, req.body.features[0]);
+    //console.log("CF Map", req.params, req.body.features[0]);
 
     try {
       const errors = validationResult(req);
@@ -168,9 +198,18 @@ exports.CustomerFeatureStore = [
       if (customer !== null) {
         // check if we already have a record in map collection
         let cfMap = await CustomerFeature.findOne({ id: customer.id });
+        let auditRec = undefined;
 
         // update existing record
         if (cfMap) {
+          // create record for audit
+          auditRec = new Audit({
+            key: Object.assign(
+              {},
+              { id: cfMap.id, name: cfMap.name, features: cfMap.features }
+            )
+          });
+
           cfMap.features = req.body.features;
         } else {
           // or create a new mapping record
@@ -186,6 +225,11 @@ exports.CustomerFeatureStore = [
         // save mapping
         cfMap.save(err => {
           if (err) return apiResponse.ErrorResponse(res, err);
+
+          // creat entry in audit
+          // TODO: err handling here
+          auditRec && auditRec.save();
+
           return apiResponse.successResponseWithData(
             res,
             "Features updated for customer.",
@@ -209,14 +253,14 @@ exports.CustomerFeatureStore = [
 // returns features of a customer
 exports.customerFeatures = [
   // auth,
-  function(req, res) {
+  (req, res) => {
     console.log("params", req.params);
     if (!req.params.id || !req.params.product) {
       return apiResponse.successResponseWithData(res, "Operation success", {});
     }
     try {
       let query = { id: req.params.id };
-      CustomerFeature.findOne(query, "id name features").then(cf => {
+      CustomerFeature.findOne(query, { _id: 0, "features._id": 0 }).then(cf => {
         console.log("cf", cf);
         if (cf !== null) {
           let data = filterByProduct(cf, req.params.product);
@@ -240,94 +284,28 @@ exports.customerFeatures = [
   }
 ];
 
-/**
- * Book update.
- *
- * @param {string}      title
- * @param {string}      description
- * @param {string}      isbn
- *
- * @returns {Object}
- */
-exports.bookUpdate = [
-  auth,
-  body("title", "Title must not be empty.")
-    .isLength({ min: 1 })
-    .trim(),
-  body("description", "Description must not be empty.")
-    .isLength({ min: 1 })
-    .trim(),
-  body("isbn", "ISBN must not be empty")
-    .isLength({ min: 1 })
-    .trim()
-    .custom((value, { req }) => {
-      return Book.findOne({
-        isbn: value,
-        user: req.user._id,
-        _id: { $ne: req.params.id }
-      }).then(book => {
-        if (book) {
-          return Promise.reject("Book already exist with this ISBN no.");
-        }
-      });
-    }),
-  sanitizeBody("*").escape(),
+// View audit records
+exports.auditList = [
+  //auth,
   (req, res) => {
     try {
-      const errors = validationResult(req);
-      var book = new Book({
-        title: req.body.title,
-        description: req.body.description,
-        isbn: req.body.isbn,
-        _id: req.params.id
-      });
-
-      if (!errors.isEmpty()) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Validation Error.",
-          errors.array()
-        );
-      } else {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-          return apiResponse.validationErrorWithData(
-            res,
-            "Invalid Error.",
-            "Invalid ID"
-          );
-        } else {
-          Book.findById(req.params.id, function(err, foundBook) {
-            if (foundBook === null) {
-              return apiResponse.notFoundResponse(
-                res,
-                "Book not exists with this id"
-              );
-            } else {
-              //Check authorized user
-              if (foundBook.user.toString() !== req.user._id) {
-                return apiResponse.unauthorizedResponse(
-                  res,
-                  "You are not authorized to do this operation."
-                );
-              } else {
-                //update book.
-                Book.findByIdAndUpdate(req.params.id, book, {}, function(err) {
-                  if (err) {
-                    return apiResponse.ErrorResponse(res, err);
-                  } else {
-                    let bookData = new BookData(book);
-                    return apiResponse.successResponseWithData(
-                      res,
-                      "Book update Success.",
-                      bookData
-                    );
-                  }
-                });
-              }
-            }
-          });
-        }
-      }
+      Audit.find({}, { _id: 0 })
+        .sort({ updatedAt: -1 })
+        .then(records => {
+          if (records.length > 0) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              records
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        });
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
