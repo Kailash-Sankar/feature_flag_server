@@ -102,6 +102,35 @@ exports.productList = [
   }
 ];
 
+// returns list of products
+exports.featureList = [
+  //auth,
+  function(req, res) {
+    try {
+      Feature.find({ product: req.params.product }, { _id: 0 }).then(
+        features => {
+          if (features.length > 0) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              features
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        }
+      );
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  }
+];
+
 // returns details of a customer
 exports.customerDetail = [
   // auth,

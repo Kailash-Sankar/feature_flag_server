@@ -7,6 +7,7 @@ var router = express.Router();
 router.get("/meta/customers/", FeatureController.customerList);
 router.get("/meta/customer/:id", FeatureController.customerDetail);
 router.get("/meta/products/", FeatureController.productList);
+router.get("/meta/features/:product", FeatureController.featureList);
 
 router.get("/audit/", FeatureController.auditList);
 
