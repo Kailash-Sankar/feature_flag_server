@@ -8,6 +8,7 @@ const FeatureSchema = new Schema(
     name: { type: String, required: true },
     product: { type: String, required: true },
     status: { type: Number, default: 0 },
+    description: { type: String, default: "Description not available" },
     attributes: [
       {
         id: String,

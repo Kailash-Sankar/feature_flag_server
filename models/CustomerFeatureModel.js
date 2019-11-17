@@ -11,8 +11,9 @@ const CustomerFeatureSchema = new Schema(
         name: String,
         id: String,
         status: Number,
-        attributes: {},
+        description: String,
         product: String,
+        attributes: {},
         config: {}
       }
     ]

@@ -18,7 +18,9 @@ router.post("/customer/:id/:product", FeatureController.CustomerFeatureStore);
 // feature management
 router.post("/ff/", FeatureController.FeatureStore);
 
-//router.put("/:id", FeatureController.bookUpdate);
+// search
+router.post("/search", FeatureController.search);
+
 //router.delete("/:id", FeatureController.bookDelete);
 
 module.exports = router;

@@ -36,6 +36,28 @@ const filterByProduct = (obj, product) => {
   return newObj;
 };
 
+// filter by product and feature against a customer list
+const filterFn = (cfList, product, feature) => {
+  if (product === "all" && feature === "all") return cfList;
+
+  const filteredList = [];
+
+  cfList.forEach(cf => {
+    const ff = cf.features.filter(f => {
+      const productTest = product !== "all" ? f.product === product : true;
+      const featureTest =
+        feature !== "all" ? f.id === feature && f.status !== 0 : true;
+      return productTest && featureTest;
+    });
+    cf.features = ff;
+    if (cf.features.length > 0) {
+      filteredList.push(cf);
+    }
+  });
+
+  return filteredList;
+};
+
 // build features for a customer
 // replaces product features and merges with existing ones
 const buildFeaturesList = (currentFeatures, newFeatures, product) => {
@@ -357,49 +379,46 @@ exports.auditList = [
   }
 ];
 
-/**
- * Book Delete.
- *
- * @param {string}      id
- *
- * @returns {Object}
- */
-exports.bookDelete = [
-  auth,
+exports.search = [
+  //auth,
   function(req, res) {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Invalid Error.",
-        "Invalid ID"
-      );
-    }
     try {
-      Book.findById(req.params.id, function(err, foundBook) {
-        if (foundBook === null) {
-          return apiResponse.notFoundResponse(
-            res,
-            "Book not exists with this id"
-          );
-        } else {
-          //Check authorized user
-          if (foundBook.user.toString() !== req.user._id) {
-            return apiResponse.unauthorizedResponse(
+      const query = {};
+      const { customer = "all", product = "all", feature = "all" } = req.body;
+      console.log("search", customer, product, feature);
+
+      if (customer !== "all") {
+        query["id"] = customer;
+      }
+
+      if (product !== "all") {
+        query["features.product"] = product;
+      }
+
+      if (feature !== "all") {
+        query["features.id"] = feature;
+      }
+
+      console.log(query);
+
+      CustomerFeature.find(query, { _id: 0 })
+        //.sort({ updatedAt: -1 })
+        .then(cfList => {
+          const records = filterFn(cfList, product, feature);
+          if (records.length > 0) {
+            return apiResponse.successResponseWithData(
               res,
-              "You are not authorized to do this operation."
+              "Operation success",
+              records
             );
           } else {
-            //delete book.
-            Book.findByIdAndRemove(req.params.id, function(err) {
-              if (err) {
-                return apiResponse.ErrorResponse(res, err);
-              } else {
-                return apiResponse.successResponse(res, "Book delete Success.");
-              }
-            });
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
           }
-        }
-      });
+        });
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
