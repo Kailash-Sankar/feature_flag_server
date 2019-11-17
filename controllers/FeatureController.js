@@ -58,6 +58,21 @@ const filterFn = (cfList, product, feature) => {
   return filteredList;
 };
 
+// buld query
+function buildQuery(customer, product, feature, prefix = "") {
+  const query = {};
+  if (customer !== "all") {
+    query[`${prefix}id`] = customer;
+  }
+  if (product !== "all") {
+    query[`${prefix}features.product`] = product;
+  }
+  if (feature !== "all") {
+    query[`${prefix}features.id`] = feature;
+  }
+  return query;
+}
+
 // build features for a customer
 // replaces product features and merges with existing ones
 const buildFeaturesList = (currentFeatures, newFeatures, product) => {
@@ -355,8 +370,13 @@ exports.auditList = [
   //auth,
   (req, res) => {
     try {
-      Audit.find({}, { _id: 0 })
+      const { customer = "all", product = "all", feature = "all" } = req.body;
+      const query = buildQuery(customer, product, feature, "key.");
+      console.log("audit", customer, product, feature, query);
+
+      Audit.find(query, { _id: 0, "key.features._id": 0 })
         .sort({ updatedAt: -1 })
+        .limit(20)
         .then(records => {
           if (records.length > 0) {
             return apiResponse.successResponseWithData(
@@ -383,23 +403,9 @@ exports.search = [
   //auth,
   function(req, res) {
     try {
-      const query = {};
       const { customer = "all", product = "all", feature = "all" } = req.body;
-      console.log("search", customer, product, feature);
-
-      if (customer !== "all") {
-        query["id"] = customer;
-      }
-
-      if (product !== "all") {
-        query["features.product"] = product;
-      }
-
-      if (feature !== "all") {
-        query["features.id"] = feature;
-      }
-
-      console.log(query);
+      const query = buildQuery(customer, product, feature);
+      console.log("search", customer, product, feature, query);
 
       CustomerFeature.find(query, { _id: 0 })
         //.sort({ updatedAt: -1 })
