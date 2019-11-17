@@ -222,7 +222,7 @@ exports.FeatureStore = [
     .trim(),
   //sanitizeBody("*").escape(),
   (req, res) => {
-    console.log("attr", req.body.attributes[0]);
+    console.log("FeatureStore", req.body);
     try {
       const errors = validationResult(req);
       console.log("errors", errors);
