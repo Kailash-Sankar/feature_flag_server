@@ -230,6 +230,7 @@ exports.FeatureStore = [
         id: req.body.id,
         name: req.body.name,
         product: req.body.product,
+        description: req.body.description,
         attributes: req.body.attributes
       });
       console.log("feature post", feature);
