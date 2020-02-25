@@ -3,74 +3,59 @@
 //use ffdb;
 
 db.customer.insertMany([
-  { id: 1928808001, name: "HBO", products: ["ai", "ei", "ci", "si"] },
-  { id: 1928808002, name: "Sony", products: ["ai", "ei"] },
-  { id: 1928808003, name: "Hulu", products: ["ai"] }
+  { id: 1928808001, name: "Alpha", products: ["pdt_arg", "pdt_znc", "pdt_ndy", "pdt_pln"] },
+  { id: 1928808002, name: "Beta", products: ["pdt_arg", "pdt_znc"] },
+  { id: 1928808003, name: "Gamma", products: ["pdt_arg"] }
 ]);
 
 db.product.insertMany([
-  { id: "ai", name: "Ad Insights" },
-  { id: "ei", name: "Experience Insights" },
-  { id: "ci", name: "Content Insights" },
-  { id: "si", name: "Social Insights" }
+  { id: "pdt_arg", name: "Argon" },
+  { id: "pdt_znc", name: "Zinc" },
+  { id: "pdt_ndy", name: "Neodym" },
+  { id: "pdt_pln", name: "Planar" }
 ]);
 
 db.features.insertMany([
   {
-    id: "ad_slates",
-    name: "Slates",
-    product: "ai",
+    id: "ff_sso",
+    name: "Single Sign-On",
+    product: "pdt_arg",
     status: 0,
     description:
-      "Enables Slate duration and plays metric in analysis dashboard",
+      "Enables Signle Sign on",
     attributes: []
   },
   {
-    id: "ad_ai_alerts",
-    name: "AI Alerts",
-    product: "ai",
+    id: "ff_alerts",
+    name: "Alerts",
+    product: "pdt_arg",
     status: 0,
     attributes: [],
-    description: "Enables AI alers tab and associated features"
+    description: "Enables Alerts tab and associated features"
   },
   {
-    id: "ai_new_dashboard",
-    name: "New Dashboards",
-    product: "ai",
+    id: "ff_usage_report",
+    name: "Usage Reports",
+    product: "pdt_arg",
     status: 0,
     attributes: [],
-    description: "Enable new card based UI for analysis dashboard"
+    description: "Enables Usage Report dashboard"
   },
   {
-    id: "ai_revenue_loss",
-    name: "Estimated Revenue Loss",
-    product: "ai",
+    id: "ff_api_rl",
+    name: "API Rate Limit",
+    product: "pdt_arg",
     status: 0,
     attributes: [
       {
         _id: "5dd01042e578918c24d6a965",
-        id: "cpm",
-        name: "Average CPM",
+        id: "nor",
+        name: "No of requests(per day)",
         meta: {
-          default: 20
+          default: 200
         }
       }
     ],
-    description: "Enable Ad Revenue Loss on analysis dashboard"
+    description: "Sets rate limit on the APIs"
   },
-  {
-    id: "ei_cam_api",
-    name: "CAM APIs",
-    product: "ei",
-    status: 0,
-    attributes: [
-      {
-        id: "rate_limit",
-        name: "Rate Limit",
-        type: "number",
-        meta: { min: 10, max: 500 }
-      }
-    ],
-    description: "Open CAM APIs for external requests"
-  }
 ]);

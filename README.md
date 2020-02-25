@@ -4,10 +4,13 @@
 
 - Clone the repo
 - npm install
-- setup mongodb locally, there are examples in bin/queries.js and bin/samples.json
+- setup mongodb locally, there are examples in bin/queries.js
 - cp .env.sample to .env and update mongo db connection string
 - npm start ( or use nodemon bin/www)
 
 The server app server will run on port 3000 by default.
 
-Additonal documentation is available here: https://beacon.corp.conviva.com/display/~ksankar/Hackathon+2019+-+FortyTwo
+This was done as part of Conviva Hackathon 2019 and was selected as the regional winner.
+
+
+Created with this boilterplate: https://github.com/maitraysuthar/rest-api-nodejs-mongodb
